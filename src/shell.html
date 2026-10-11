@@ -1,0 +1,216 @@
+<meta charset="utf-8">
+<title>Wild Fields 1648</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=Spectral+SC:wght@600;700&display=swap">
+<style>
+/* Layout: full-bleed battlefield; walnut-and-brass command bar along the bottom (minimap, selection, orders), resource strip on top */
+:root {
+  --ink: #120d08; --walnut: #241810; --walnut-2: #33241a; --walnut-3: #4a3524; --brass: #c19a52; --brass-dim: #8a6c38;
+  --parchment: #ead9b4; --parchment-2: #d8c49a; --text: #f1e5c9; --muted: #b9a684; --crimson: #b3262b; --ok: #8fd18a; --warn: #e7b54a; --bad: #e0573f;
+  --display: 'IM Fell English SC', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --body: 'Spectral', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --label: 'Spectral SC', 'Spectral', Georgia, serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--ink); color: var(--text); font-family: var(--body); -webkit-user-select: none; user-select: none; }
+#game, #overlay { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#game { background: #6d7f8f; outline: none; }
+#overlay { pointer-events: none; z-index: 2; }
+button { font-family: var(--body); color: var(--text); cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.panel { background: linear-gradient(180deg, var(--walnut-2), var(--walnut)); border: 1px solid #0a0704; box-shadow: inset 0 0 0 1px rgba(193,154,82,0.35), 0 6px 24px rgba(0,0,0,0.5); }
+
+/* top strip */
+#top { position: fixed; top: 0; left: 0; right: 0; z-index: 5; display: flex; align-items: center; gap: 6px; padding: calc(env(safe-area-inset-top, 0px) + 4px) 10px 4px; height: 36px; background: linear-gradient(180deg, rgba(36,24,16,0.96), rgba(36,24,16,0.86)); border-bottom: 1px solid var(--brass-dim); }
+.res { display: flex; align-items: center; gap: 6px; padding: 2px 10px 2px 6px; min-width: 92px; border-right: 1px solid rgba(193,154,82,0.25); font-variant-numeric: tabular-nums; }
+.res b { font-size: 17px; font-weight: 700; letter-spacing: 0.01em; }
+.res small { color: var(--muted); font-size: 12px; }
+.res canvas { width: 22px; height: 22px; }
+.res.low b { color: var(--bad); }
+#clock { margin-left: auto; font-family: var(--label); color: var(--parchment-2); font-size: 15px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+.tbtn { background: var(--walnut-3); border: 1px solid var(--brass-dim); border-radius: 3px; height: 26px; min-width: 34px; padding: 0 8px; font-family: var(--label); font-size: 13px; letter-spacing: 0.05em; }
+.tbtn:hover { border-color: var(--brass); }
+
+/* bottom command bar */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; height: 196px; display: grid; grid-template-columns: 208px minmax(0, 1fr) 316px; gap: 8px; padding: 8px 8px calc(env(safe-area-inset-bottom, 0px) + 8px); background: linear-gradient(180deg, rgba(51,36,26,0.97), rgba(26,18,11,0.99)); border-top: 2px solid var(--brass-dim); box-shadow: 0 -8px 30px rgba(0,0,0,0.45); }
+#miniwrap { position: relative; width: 196px; height: 180px; }
+#mini { width: 180px; height: 180px; border-radius: 50%; display: block; margin: 0 auto; background: #0c0906; box-shadow: 0 0 0 3px var(--brass-dim), 0 0 0 5px #0a0704, inset 0 0 20px rgba(0,0,0,0.6); cursor: pointer; }
+#compass { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); font-family: var(--display); font-size: 13px; color: var(--brass); pointer-events: none; }
+.mbtn { position: absolute; width: 36px; height: 36px; border-radius: 50%; background: var(--walnut-3); border: 1px solid var(--brass-dim); font-family: var(--label); font-size: 12px; display: grid; place-items: center; }
+.mbtn .n { position: absolute; right: -4px; top: -4px; background: var(--crimson); border-radius: 9px; font-size: 11px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 3px; }
+#btn-idle { left: -2px; bottom: 0; } #btn-army { right: -2px; bottom: 0; }
+#sel { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 10px 12px; min-width: 0; border-radius: 4px; }
+#portrait { width: 112px; height: 112px; border: 1px solid var(--brass-dim); background: radial-gradient(circle at 50% 40%, #4b5a4a, #1a1510); border-radius: 3px; }
+#portrait img { width: 100%; height: 100%; object-fit: contain; display: block; }
+#selinfo { min-width: 0; display: grid; gap: 4px; align-content: start; }
+#selname { font-family: var(--display); font-size: 25px; line-height: 1; color: var(--parchment); text-wrap: balance; }
+#selsub { color: var(--muted); font-size: 13px; font-style: italic; }
+.hpbar { height: 7px; background: #120c07; border: 1px solid #000; border-radius: 2px; overflow: hidden; max-width: 260px; }
+.hpbar i { display: block; height: 100%; background: linear-gradient(180deg, #9ee07a, #5aa543); }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--parchment-2); font-variant-numeric: tabular-nums; }
+.stats span b { color: var(--text); font-weight: 600; }
+#queue { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.qi { position: relative; width: 38px; height: 38px; border: 1px solid var(--brass-dim); border-radius: 3px; background: #1a130c; padding: 0; overflow: hidden; }
+.qi img { width: 100%; height: 100%; object-fit: contain; }
+.qi i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--brass); }
+#group { display: flex; flex-wrap: wrap; gap: 3px; max-height: 128px; overflow: hidden; align-content: flex-start; }
+.gi { position: relative; width: 40px; height: 40px; border: 1px solid var(--brass-dim); border-radius: 3px; background: #1a130c; padding: 0; }
+.gi img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.gi b { position: absolute; right: 2px; bottom: 0; font-size: 12px; text-shadow: 0 1px 2px #000; }
+.gi .h { position: absolute; left: 2px; right: 2px; bottom: 1px; height: 2px; background: #5aa543; }
+#cmds { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(3, 1fr); gap: 5px; padding: 8px; border-radius: 4px; }
+.cmd { position: relative; border: 1px solid var(--brass-dim); border-radius: 3px; background: linear-gradient(180deg, #4b3726, #2a1d13); padding: 0; overflow: hidden; }
+.cmd:hover { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass) inset; }
+.cmd.off { filter: grayscale(0.85) brightness(0.6); }
+.cmd.on { box-shadow: 0 0 0 2px var(--ok) inset; }
+.cmd img, .cmd canvas { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cmd .k { position: absolute; left: 3px; top: 1px; font-family: var(--label); font-size: 11px; color: var(--parchment); text-shadow: 0 1px 2px #000; }
+.cmd .lbl { position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; text-align: center; background: rgba(10,7,4,0.6); line-height: 1.3; }
+#tip { position: fixed; z-index: 8; right: 10px; bottom: 206px; width: 290px; padding: 10px 12px; border-radius: 4px; pointer-events: none; font-size: 14px; line-height: 1.35; }
+#tip h4 { margin: 0 0 3px; font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--parchment); }
+#tip .cost { display: flex; gap: 10px; color: var(--parchment-2); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+#tip .cost .no { color: var(--bad); }
+#tip p { margin: 0; color: var(--muted); }
+
+/* notices */
+#toasts { position: fixed; z-index: 6; left: 50%; transform: translateX(-50%); top: 48px; display: grid; gap: 6px; justify-items: center; pointer-events: none; width: min(560px, 90vw); }
+.toast { font-size: 15px; padding: 6px 14px; border-radius: 3px; background: rgba(26,18,11,0.92); border: 1px solid var(--brass-dim); color: var(--parchment); transition: opacity .5s, transform .5s; text-align: center; }
+.toast.warn { border-color: var(--warn); }
+.toast.bad { border-color: var(--bad); color: #ffd2c6; }
+.toast.out { opacity: 0; transform: translateY(-6px); }
+
+/* overlays */
+.screen { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; overflow-y: auto; background: radial-gradient(ellipse at 50% 40%, rgba(18,13,8,0.25), rgba(18,13,8,0.86) 75%); }
+.card { width: min(560px, 100%); padding: 26px 28px; border-radius: 4px; display: grid; gap: 16px; }
+.title { font-family: var(--display); font-size: clamp(54px, 9vw, 86px); line-height: 0.88; color: var(--parchment); text-shadow: 0 2px 0 #3a2312, 0 0 34px rgba(193,154,82,0.35); letter-spacing: 0.01em; }
+.title small { display: block; font-size: 0.3em; color: var(--brass); letter-spacing: 0.22em; margin-top: 10px; }
+.lede { font-size: 16px; line-height: 1.45; color: var(--parchment-2); margin: 0; max-width: 60ch; }
+.opt { display: grid; grid-template-columns: 116px 1fr; align-items: center; gap: 10px; }
+.opt > span { font-family: var(--label); font-size: 14px; color: var(--brass); letter-spacing: 0.06em; }
+.seg { display: flex; gap: 4px; flex-wrap: wrap; }
+.seg button { flex: 1; min-width: 70px; padding: 7px 8px; background: var(--walnut-3); border: 1px solid #0a0704; border-radius: 3px; font-size: 14px; }
+.seg button.on { background: #6a4b2c; box-shadow: inset 0 0 0 1px var(--brass); color: #fff6e0; }
+.go { font-family: var(--display); font-size: 26px; padding: 10px 14px; background: linear-gradient(180deg, #a3282a, #6e1517); border: 1px solid #2a0808; box-shadow: inset 0 0 0 1px rgba(255,210,160,0.35); border-radius: 3px; color: #fff1d8; letter-spacing: 0.04em; }
+.go:hover { filter: brightness(1.1); }
+details { font-size: 14px; color: var(--parchment-2); }
+details summary { font-family: var(--label); color: var(--brass); cursor: pointer; letter-spacing: 0.05em; }
+.keys { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin-top: 8px; }
+.keys kbd { font-family: var(--label); font-size: 12px; background: var(--walnut-3); border: 1px solid var(--brass-dim); border-radius: 3px; padding: 0 5px; color: var(--parchment); }
+.loading { font-family: var(--label); color: var(--muted); letter-spacing: 0.08em; }
+#endstats { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+#endstats th, #endstats td { padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(193,154,82,0.2); }
+#endstats th:first-child, #endstats td:first-child { text-align: left; }
+#endstats th { font-family: var(--label); color: var(--brass); font-weight: 600; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.row > * { flex: 1; }
+.ghost { background: var(--walnut-3); border: 1px solid var(--brass-dim); border-radius: 3px; padding: 9px 12px; font-size: 15px; }
+#alert { position: fixed; z-index: 6; top: 46px; left: 12px; font-family: var(--display); font-size: 22px; color: #ffcbbd; text-shadow: 0 2px 6px #000; pointer-events: none; }
+@media (max-width: 900px) {
+  #bar { grid-template-columns: 150px minmax(0, 1fr); height: auto; }
+  #cmds { grid-column: 1 / -1; height: 150px; }
+  #mini { width: 132px; height: 132px; }
+  #miniwrap { width: 146px; height: 140px; }
+  #sel { grid-template-columns: 70px minmax(0, 1fr); }
+  #portrait { width: 70px; height: 70px; }
+  .res { min-width: 0; padding-right: 6px; }
+  .res small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+
+<canvas id="game" tabindex="0" aria-label="Battlefield"></canvas>
+<canvas id="overlay" aria-hidden="true"></canvas>
+
+<div id="top" hidden>
+  <div class="res" id="r0" title="Food"><canvas width="44" height="44"></canvas><b>0</b><small></small></div>
+  <div class="res" id="r1" title="Wood"><canvas width="44" height="44"></canvas><b>0</b><small></small></div>
+  <div class="res" id="r2" title="Stone"><canvas width="44" height="44"></canvas><b>0</b><small></small></div>
+  <div class="res" id="r3" title="Gold"><canvas width="44" height="44"></canvas><b>0</b><small></small></div>
+  <div class="res" id="rp" title="Population"><canvas width="44" height="44"></canvas><b>0/0</b></div>
+  <span id="clock">0:00</span>
+  <button class="tbtn" id="btn-speed" title="Game speed (+/-)">1×</button>
+  <button class="tbtn" id="btn-menu" title="Menu (Esc)">Menu</button>
+</div>
+<div id="alert" hidden></div>
+<div id="toasts" aria-live="polite"></div>
+
+<div id="bar" hidden>
+  <div id="miniwrap">
+    <canvas id="mini" width="360" height="360" aria-label="Minimap"></canvas>
+    <span id="compass">N</span>
+    <button class="mbtn" id="btn-idle" title="Next idle peasant (.)">Idle<span class="n" id="idle-n">0</span></button>
+    <button class="mbtn" id="btn-army" title="Select the whole army (,)">Army</button>
+  </div>
+  <div id="sel" class="panel">
+    <div id="portrait"></div>
+    <div id="selinfo">
+      <div id="selname"></div>
+      <div id="selsub"></div>
+      <div class="hpbar" id="selhp"><i></i></div>
+      <div class="stats" id="selstats"></div>
+      <div id="queue"></div>
+      <div id="group"></div>
+    </div>
+  </div>
+  <div id="cmds" class="panel"></div>
+</div>
+<div id="tip" class="panel" hidden></div>
+
+<div id="start" class="screen">
+  <div class="card panel">
+    <div class="title">Wild Fields<small>Pike and shot on the steppe, 1648</small></div>
+    <p class="lede">Raise a town on the edge of the Wild Fields. Farm, fell the forests, quarry stone and mine gold, then muster pikemen, musketeers, Cossack horse and field guns. Burn the rival town halls before they burn yours.</p>
+    <div class="opt"><span>Opponents</span><div class="seg" id="o-ai"><button data-v="1" class="on">One</button><button data-v="2">Two</button><button data-v="3">Three</button></div></div>
+    <div class="opt"><span>Difficulty</span><div class="seg" id="o-diff"><button data-v="0">Easy</button><button data-v="1" class="on">Normal</button><button data-v="2">Hard</button></div></div>
+    <div class="opt"><span>Graphics</span><div class="seg" id="o-q"><button data-v="0">Low</button><button data-v="1">Medium</button><button data-v="2" class="on">High</button><button data-v="3">Ultra</button></div></div>
+    <button class="go" id="btn-start" disabled>Loading…</button>
+    <p class="credit" style="margin:8px 0 0;font-size:12px;opacity:.6;text-align:center">Scanned rocks, plants, props and textures: Poly Haven (CC0)</p>
+    <details>
+      <summary>Orders and keys</summary>
+      <div class="keys">
+        <kbd>Left click / drag</kbd><span>Select, box-select. Shift adds. Double-click selects that type on screen.</span>
+        <kbd>Right click</kbd><span>Move, attack, gather, build or repair, depending on what is under the cursor.</span>
+        <kbd>Right drag</kbd><span>Draw the front line: the regiment forms up along it, facing away from you.</span>
+        <kbd>A, then click</kbd><span>Attack-move: march and fight anything on the way.</span>
+        <kbd>Q W E R T …</kbd><span>The command grid: build, train, research.</span>
+        <kbd>Ctrl + 1–9</kbd><span>Make a group. Press the number to select it, twice to jump to it.</span>
+        <kbd>Arrows, screen edge</kbd><span>Scroll. Wheel zooms. Middle drag or [ ] turns the view.</span>
+        <kbd>.</kbd><span>Next idle peasant. <kbd>,</kbd> whole army. <kbd>H</kbd> town hall. <kbd>Space</kbd> last alert.</span>
+        <kbd>Esc</kbd><span>Cancel, deselect, or open the menu.</span>
+      </div>
+    </details>
+  </div>
+</div>
+
+<div id="pause" class="screen" hidden>
+  <div class="card panel">
+    <div class="title" style="font-size:54px">Council of War</div>
+    <div class="opt"><span>Graphics</span><div class="seg" id="p-q"><button data-v="0">Low</button><button data-v="1">Medium</button><button data-v="2">High</button><button data-v="3">Ultra</button></div></div>
+    <div class="opt"><span>Sound</span><div class="seg" id="p-snd"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
+    <div class="opt"><span>Music</span><div class="seg" id="p-mus"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
+    <button class="go" id="btn-resume">Resume</button>
+    <div class="row"><button class="ghost" id="btn-restart">New battle</button><button class="ghost" id="btn-quit">Surrender</button></div>
+  </div>
+</div>
+
+<div id="end" class="screen" hidden>
+  <div class="card panel" style="width:min(680px,100%)">
+    <div class="title" id="end-title" style="font-size:60px">Victory</div>
+    <p class="lede" id="end-lede"></p>
+    <div style="overflow-x:auto"><table id="endstats"></table></div>
+    <div class="row"><button class="ghost" id="btn-watch">Look at the field</button><button class="go" id="btn-again">New battle</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+/*JS*/
+</script>
