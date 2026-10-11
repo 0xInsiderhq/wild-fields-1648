@@ -2,9 +2,9 @@
 
 A real-time strategy game set on the Ukrainian steppe in 1648, written by Claude Opus 5.5 and played in one browser tab. Raise a Cossack town, farm, fell forests, quarry stone, mine gold, train pikemen, musketeers, Cossack horse and field guns, and burn the rival town halls before they burn yours.
 
-**Play:** https://0xinsiderhq.github.io/wild-fields-1648/ (desktop, give it a few seconds to load the scans)
+**[Play it in your browser](https://0xinsiderhq.github.io/wild-fields-1648/)** · desktop, give it a few seconds to load the scans · follow the build on X [@0xInsiderf5](https://x.com/0xInsiderf5)
 
-![v1 vs v3](media/post_before_after.jpg)
+![Wild Fields 1648, a regiment marching through a Cossack village](media/preview.webp)
 
 ## What is in it
 
@@ -14,6 +14,12 @@ A real-time strategy game set on the Ukrainian steppe in 1648, written by Claude
 - AI opponents that build, gather, research and attack; a 20 minute AI vs AI match runs without errors
 - Burnt buildings leave ruins (log cribs, stone walls, a brick stove), new buildings clear the bushes on their plot
 - Sound synthesised in code, no samples
+
+## From the first build to v3
+
+The first build had procedural models only. v3 added 25 Poly Haven scans that Claude found and downloaded itself by driving a browser, after its sandbox could not reach the asset sites.
+
+![v1 vs v3](media/post_before_after.jpg)
 
 ## Run it locally
 
